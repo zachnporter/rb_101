@@ -1,0 +1,8 @@
+welcome: "Weclome to mortgage calclulator!"
+break: "--------------------------------"
+loan_amount: "What is the amount of the loan?"
+apr: "What is the Annual Percentage Rate (APR)?"
+loan_duration: "What is the duration of the loan in years?"
+valid_number: "Please enter a positive number."
+continue: "Would you like to perform another calculation?"
+thank_you: "Thank you for using Mortgage Calculator!"
