@@ -3,13 +3,18 @@
 # duplicate characters collapsed into a single character.
 # You may not use String#squeeze or String#squeeze!.
 
-def crunch()
+def crunch(string)
+  result = ''
+  string.chars.each do |char|
+    result << char unless result[-1] == char
+  end
 
+  result
 end
 
 # Examples:
-crunch('ddaaiillyy ddoouubbllee') == 'daily double'
-crunch('4444abcabccba') == '4abcabcba'
-crunch('ggggggggggggggg') == 'g'
-crunch('a') == 'a'
-crunch('') == ''
+p crunch('ddaaiillyy ddoouubbllee') == 'daily double'
+p crunch('4444abcabccba') == '4abcabcba'
+p crunch('ggggggggggggggg') == 'g'
+p crunch('a') == 'a'
+p crunch('') == ''
