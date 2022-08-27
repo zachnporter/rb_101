@@ -22,9 +22,30 @@ def prompt(message)
   puts "=> #{message}"
 end
 
+def display_rules?
+  prompt("Would you like to read the rules? (y/n)")
+  answer = gets.chomp
+  display_rules if answer.downcase.start_with?('y')
+end
+
+def display_rules
+  system 'clear'
+  prompt("Rules:")
+  puts "The game is an expansion on the game Rock, Paper, Scissors."
+  puts "- Each player picks a variable"
+  puts "- The winner is decided by comparing the two variable (see below)"
+  puts "- In a tie, the process is repeated until a winner is found"
+  prompt("Remember:")
+  puts "- Scissors cuts paper. Paper covers rock."
+  puts "- Rock crushes lizard. Lizard poisons Spock."
+  puts "- Spock smashes scissors. Scissors decapitates lizard."
+  puts "- Lizard eats paper. Paper disproves Spock."
+  puts "- Spock vaporizes rock. Rock crushes scissors."
+end
+
 def enter_to_continue
   prompt("Press enter to continue:")
-  gets.chomp
+  gets
 end
 
 def win?(first, second)
@@ -72,6 +93,7 @@ end
 system 'clear'
 prompt("Welcome to Rock, Paper, Scissors, Lizard, Spock!")
 prompt("First to 3 is grand champion!")
+display_rules?
 enter_to_continue
 
 loop do
@@ -85,7 +107,7 @@ loop do
     loop do
       prompt("Choose one:")
       VALID_CHOICES.each { |key, value| puts "- '#{key}' for #{value}" }
-      choice = gets.chomp
+      choice = gets.chomp.downcase
 
       if VALID_CHOICES.include?(choice)
         choice = VALID_CHOICES[choice]
