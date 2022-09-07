@@ -6,6 +6,7 @@ WINNING_LINES = [
   [1, 4, 7], [2, 5, 8], [3, 6, 9],
   [1, 5, 9], [3, 5, 7]
 ]
+TARGET_WINS = 1
 
 def prompt(msg)
   puts "=> #{msg}"
@@ -16,27 +17,40 @@ def game_introduction
   prompt "Welcome to Tic Tac Toe!"
   sleep(1)
 
-  prompt "Would you like to read the rules? (y/n)"
-  answer = gets.chomp
-  display_rules if answer.downcase.start_with?('y')
+  loop do
+    prompt "Would you like to read the rules? (y/n)"
+    answer = gets.chomp
+
+    if answer.downcase == 'y'
+      display_rules
+      break
+    elsif answer.downcase == 'n'
+      break
+    end
+
+    system 'clear'
+    prompt "Please make a valid selection."
+  end
 end
 
 def display_rules
   system 'clear'
   prompt "Rules:"
-  puts "- Tic Tac Toe is a 2 player game played on a 3x3 board"
-  puts "- Each player takes a turn and marks a square on the board"
-  puts "- First player to reach 3 squares in a row, including diagonals, wins"
-  puts "- If no player has 3 squares in a row, then the game is a tie"
-  puts "- First to 5 wins is champion!"
+  puts <<-RULES
+  - Tic Tac Toe is a 2 player game played on a 3x3 board
+  - Each player takes a turn and marks a square on the board
+  - First player to reach 3 squares in a row, including diagonals, wins
+  - If no player has 3 squares in a row, then the game is a tie
+  - First to #{TARGET_WINS} wins is champion!
+  RULES
   prompt "Press Enter to begin:"
   gets
 end
 
 def who_goes_first?
   system 'clear'
-  prompt "Who goes first? (u)ser or (c)omputer?"
   loop do
+    prompt "Who goes first? (u)ser or (c)omputer?"
     answer = gets.chomp.downcase
 
     if answer.start_with?('u')
@@ -46,7 +60,7 @@ def who_goes_first?
     end
 
     system 'clear'
-    prompt "Please make a valid selection: (u)ser or (c)omputer?"
+    prompt "Please make a valid selection."
   end
 end
 
@@ -57,20 +71,22 @@ def start_match(current_player)
 end
 
 # rubocop:disable Metrics/AbcSize
-def display_board(board)
+def display_board(board, squares)
   system 'clear'
-  prompt "You're '#{PLAYER_MARKER}'. Computer is '#{COMPUTER_MARKER}'"
-  puts ""
-  puts "1    |2    |3    "
-  puts "  #{board[1]}  |  #{board[2]}  |  #{board[3]}  "
-  puts "_____|_____|_____"
-  puts "4    |5    |6    "
-  puts "  #{board[4]}  |  #{board[5]}  |  #{board[6]}   "
-  puts "_____|_____|_____"
-  puts "7    |8    |9    "
-  puts "  #{board[7]}  |  #{board[8]}  |  #{board[9]}  "
-  puts "     |     |     "
-  puts ""
+  puts <<~BOARD
+  You're '#{PLAYER_MARKER}'. Computer is '#{COMPUTER_MARKER}'
+  
+  #{squares[0]}    |#{squares[1]}    |#{squares[2]}    
+    #{board[1]}  |  #{board[2]}  |  #{board[3]}  
+  _____|_____|_____
+  #{squares[3]}    |#{squares[4]}    |#{squares[5]}    
+    #{board[4]}  |  #{board[5]}  |  #{board[6]}   
+  _____|_____|_____
+  #{squares[6]}    |#{squares[7]}    |#{squares[8]}    
+    #{board[7]}  |  #{board[8]}  |  #{board[9]}  
+       |     |     
+  
+  BOARD
 end
 # rubocop:enable Metrics/AbcSize
 
@@ -82,6 +98,10 @@ def initialize_board
   new_board = {}
   (1..9).each { |num| new_board[num] = INITIAL_MARKER }
   new_board
+end
+
+def initialize_squares
+  ('1'..'9').to_a
 end
 
 def empty_squares(board)
@@ -109,11 +129,11 @@ def joinor(arr, delimeter = ', ', word = 'or')
   end
 end
 
-def place_piece!(board, current_player)
+def place_piece!(board, squares, current_player)
   if current_player == 'user'
-    player_placement!(board)
+    player_placement!(board, squares)
   elsif current_player == 'computer'
-    computer_placement!(board)
+    computer_placement!(board, squares)
   end
 end
 
@@ -125,7 +145,7 @@ def alternate_player(current_player)
   end
 end
 
-def player_placement!(board)
+def player_placement!(board, squares)
   square = ''
 
   loop do
@@ -133,14 +153,15 @@ def player_placement!(board)
     square = gets.chomp.to_i
     break if empty_squares(board).include?(square)
 
-    display_board(board)
+    display_board(board, squares)
     prompt "Sorry, not a valid selection."
   end
 
+  squares[square - 1] = ' '
   board[square] = PLAYER_MARKER
 end
 
-def computer_placement!(board)
+def computer_placement!(board, squares)
   square = winning_square(board, COMPUTER_MARKER)
 
   if !square
@@ -151,6 +172,7 @@ def computer_placement!(board)
 
   square = empty_squares(board).sample if !square
 
+  squares[square - 1] = ' '
   board[square] = COMPUTER_MARKER
 end
 
@@ -175,35 +197,51 @@ def detect_winner(board)
 end
 
 def champion?(player_score, computer_score)
-  player_score == 5 || computer_score == 5
+  player_score == TARGET_WINS || computer_score == TARGET_WINS
 end
 
-# rubocop:disable Metrics/MethodLength
 def display_champion(player_score, computer_score)
-  if player_score == 5
-    puts "------------------------"
-    sleep(1)
-    prompt "You are the Tic Tac Toe Champion!"
-    sleep(1.5)
-    prompt "Congrats!!!"
-    sleep(1.5)
-    puts "------------------------"
-  elsif computer_score == 5
-    puts "------------------------"
-    sleep(1)
-    prompt "Computer is the Tic Tac Toe Champion!"
-    sleep(1.5)
-    prompt "Better luck next time!"
-    sleep(1.5)
-    puts "------------------------"
+  if player_score == TARGET_WINS
+    player_wins
+  elsif computer_score == TARGET_WINS
+    computer_wins
   end
 end
-# rubocop:enable Metrics/MethodLength
+
+def player_wins
+  puts "------------------------"
+  sleep(1)
+  prompt "You are the Tic Tac Toe Champion!"
+  sleep(1.5)
+  prompt "Congrats!!!"
+  sleep(1.5)
+  puts "------------------------"
+end
+
+def computer_wins
+  puts "------------------------"
+  sleep(1)
+  prompt "Computer is the Tic Tac Toe Champion!"
+  sleep(1.5)
+  prompt "Better luck next time!"
+  sleep(1.5)
+  puts "------------------------"
+end
 
 def play_again?
-  prompt("Do you want to play again? (y/n)")
-  answer = gets.chomp
-  answer.downcase.start_with?('y')
+  loop do
+    prompt("Do you want to play again? (y/n)")
+    answer = gets.chomp
+
+    if answer.downcase == 'y'
+      return true
+    elsif answer.downcase == 'n'
+      return false
+    end
+
+    # system 'clear'
+    prompt "Please make a valid selection."
+  end
 end
 
 game_introduction
@@ -219,15 +257,16 @@ loop do
 
   loop do
     board = initialize_board
+    available_squares = initialize_squares
 
     loop do
-      display_board(board)
-      place_piece!(board, current_player)
+      display_board(board, available_squares)
+      place_piece!(board, available_squares, current_player)
       current_player = alternate_player(current_player)
       break if winner?(board) || tie?(board)
     end
 
-    display_board(board)
+    display_board(board, available_squares)
 
     if winner?(board)
       prompt "#{detect_winner(board)} won!"
